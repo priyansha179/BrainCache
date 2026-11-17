@@ -129,10 +129,4 @@ python -m pytest ../tests -q
 - Test API behavior and document decisions as the project evolves.
 - Keep setup instructions reproducible for every team member.
 
-## Team
-
-A collaborative final-year Computer Engineering project.
-
----
-
 *BrainCache is an academic project under active development. Architecture and features may evolve as implementation and testing progress.*
