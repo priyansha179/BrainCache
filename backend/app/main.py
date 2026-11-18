@@ -1,12 +1,12 @@
 """BrainCache API: authenticated personal data, search, and productivity endpoints."""
 from datetime import datetime
 from typing import Literal
-from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status\nfrom fastapi.middleware.cors import CORSMiddleware\nimport os
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from . import models, schemas
-from .auth import create_access_token, get_current_user, hash_password, verify_password
+from .auth import create_access_token, get_current_user, hash_password, verify_password\nfrom .ai import generate_grounded_answer
 from .database import get_db
 
 # create_all supports fresh local databases; use Alembic migrations for existing databases.
@@ -245,4 +245,27 @@ def dashboard_summary(db: Session = Depends(get_db), user: models.User = Depends
         "tasks": {state: db.query(models.Task).filter_by(user_id=user.id, status=state).count() for state in ("Pending", "In Progress", "Completed")},
         "upcoming_reminders": db.query(models.Reminder).filter(models.Reminder.user_id == user.id, models.Reminder.is_completed.is_(False)).count(),
         "calendar_events": db.query(models.CalendarEvent).filter_by(user_id=user.id).count(),
+    }
+
+
+@app.post("/api/ai/ask", response_model=schemas.AskResponse, tags=["AI"])
+async def ask_braincache(payload: schemas.AskRequest, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
+    """Answer a question using only matching notes owned by the signed-in user."""
+    terms = [term.lower() for term in payload.question.split() if len(term) > 2]
+    if not terms:
+        raise HTTPException(status_code=422, detail="Question must contain searchable terms.")
+    matches = db.query(models.Note).filter(
+        models.Note.user_id == user.id,
+        or_(*[or_(models.Note.title.ilike(f"%{term}%"), models.Note.content.ilike(f"%{term}%")) for term in terms]),
+    ).order_by(models.Note.updated_at.desc()).limit(8).all()
+    if not matches:
+        raise HTTPException(status_code=404, detail="No matching personal notes were found. Save relevant notes and try again.")
+    context = "\\n\\n".join(f"Note: {item.title}\\n{item.content[:3000]}" for item in matches)
+    try:
+        answer = await generate_grounded_answer(payload.question, context)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    return {
+        "answer": answer,
+        "sources": [{"note_id": item.id, "title": item.title, "excerpt": item.content[:280]} for item in matches],
     }
