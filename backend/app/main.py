@@ -127,6 +127,7 @@ def list_tasks(status_filter: Literal["Pending", "In Progress", "Completed"] | N
 def update_task(task_id: int, payload: schemas.TaskUpdate, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
     item = owned_or_404(db, models.Task, task_id, user.id, "Task")
     changes = payload.model_dump(exclude_unset=True)
+    changes = {key: value for key, value in changes.items() if value is not None or key == "due_date"}
     if not changes: raise HTTPException(status_code=422, detail="Provide at least one field to update.")
     for key, value in changes.items(): setattr(item, key, value)
     db.commit(); db.refresh(item)
@@ -172,6 +173,7 @@ def get_reminder(reminder_id: int, db: Session = Depends(get_db), user: models.U
 def update_reminder(reminder_id: int, payload: schemas.ReminderUpdate, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
     item = owned_or_404(db, models.Reminder, reminder_id, user.id, "Reminder")
     changes = payload.model_dump(exclude_unset=True)
+    changes = {key: value for key, value in changes.items() if value is not None}
     if not changes: raise HTTPException(status_code=422, detail="Provide at least one field to update.")
     for key, value in changes.items(): setattr(item, key, value)
     db.commit(); db.refresh(item)
@@ -210,6 +212,7 @@ def get_event(event_id: int, db: Session = Depends(get_db), user: models.User = 
 def update_event(event_id: int, payload: schemas.CalendarEventUpdate, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
     item = owned_or_404(db, models.CalendarEvent, event_id, user.id, "Calendar event")
     changes = payload.model_dump(exclude_unset=True)
+    changes = {key: value for key, value in changes.items() if value is not None or key == "location"}
     if not changes: raise HTTPException(status_code=422, detail="Provide at least one field to update.")
     if changes.get("start_at", item.start_at) is None or changes.get("end_at", item.end_at) <= changes.get("start_at", item.start_at):
         raise HTTPException(status_code=422, detail="end_at must be later than start_at.")
