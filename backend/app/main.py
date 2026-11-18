@@ -1,22 +1,24 @@
 """BrainCache API: authenticated personal data, search, and productivity endpoints."""
 from datetime import datetime
 from typing import Literal
-from fastapi import Depends, FastAPI, HTTPException, Query, status\nfrom fastapi.middleware.cors import CORSMiddleware\nimport os
+from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware\nimport os
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from . import models, schemas
-from .auth import create_access_token, get_current_user, hash_password, verify_password\nfrom .ai import generate_grounded_answer
+from .auth import create_access_token, get_current_user, hash_password, verify_password
+from .ai import generate_grounded_answer
 from .database import get_db
-
-# create_all supports fresh local databases; use Alembic migrations for existing databases.
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="BrainCache API",
     description="Secure personal knowledge and productivity API.",
     version="1.0.0",
 )
+
+origins = [item.strip() for item in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,http://localhost:8081").split(",") if item.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
 @app.get("/", tags=["General"])
