@@ -1,4 +1,5 @@
 """BrainCache API entry point."""
+from datetime import datetime
 from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Query, status
@@ -189,8 +190,8 @@ def create_event(payload: schemas.CalendarEventCreate, db: Session = Depends(get
 
 @app.get("/api/events", response_model=list[schemas.CalendarEventRead], tags=["Calendar"])
 def list_events(
-    start_from: object | None = Query(default=None, description="Optional ISO datetime lower bound."),
-    end_before: object | None = Query(default=None, description="Optional ISO datetime upper bound."),
+    start_from: datetime | None = Query(default=None, description="Optional ISO datetime lower bound."),
+    end_before: datetime | None = Query(default=None, description="Optional ISO datetime upper bound."),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
