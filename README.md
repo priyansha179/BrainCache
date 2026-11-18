@@ -1,108 +1,71 @@
-# BrainCache — An AI-Powered Second Brain
+# BrainCache — AI-Powered Personal Knowledge OS
 
 **Remember Less. Think More.**
 
-BrainCache is a personal knowledge and productivity platform designed to help people capture, organize, and retrieve notes, tasks, reminders, and important information from one place. Its planned AI capabilities will make personal information easier to search, understand, and use through natural-language interaction.
+BrainCache is a personal knowledge and productivity platform for capturing, organizing, and retrieving notes, tasks, reminders, and calendar events. Its backend provides account security, private user data, search, and an optional local-model RAG question-answering endpoint.
 
-> **Project status:** Backend foundation in progress. This is a final-year Computer Engineering major project.
+> **Project status:** Active final-year Computer Engineering major project. The backend MVP is implemented; mobile integration, production deployment, semantic embeddings, and push-notification delivery remain future work.
 
-## Implemented backend features
+## Backend capabilities
 
 - FastAPI REST API with interactive OpenAPI documentation.
-- Notes: create, list, retrieve, search, partially update, and delete.
-- Tasks: create, list, filter by status, update status, and delete.\n- Reminders: create, list, filter by completion, retrieve, update, and delete.\n- Calendar events: create, list by date range, retrieve, update, and delete, with schedule validation.
-- Request validation for note/task titles and supported task statuses.
-- SQLAlchemy models, SQLite development database, and request-scoped sessions.
-- Automated API tests using an isolated in-memory SQLite database.
-- GitHub Actions workflow to run backend tests on relevant pushes and pull requests.
+- User registration, Argon2 password hashing, JWT login, and current-user endpoint.
+- User-scoped notes, tasks, reminders, and calendar events.
+- CRUD operations, validation, filtering, and pagination for personal records.
+- Keyword-based search across a user's notes and tasks.
+- Dashboard summary counts.
+- Retrieval-grounded AI Q&A using matching private notes and an optional local Ollama model.
+- SQLAlchemy data models, SQLite development database, and Alembic migration setup.
+- Automated integration tests using isolated in-memory SQLite.
+- GitHub Actions workflow for backend tests and migration checks.
 
-See [Backend API Reference](docs/backend-api.md) for endpoint details.
+See [Backend setup](backend/README.md), [API reference](docs/backend-api.md), and [database design](docs/database-design.md).
 
-## Planned features
+## Technology stack
 
-- Personal knowledge capture and organization.
-- Authentication and per-user data ownership.\n- Automated reminder delivery and notification scheduling.
-- Semantic search using embeddings.
-- RAG-based natural-language Q&A grounded in saved information.
-- Contextual summaries, suggestions, notifications, and daily briefings.
-
-Not all planned features are implemented yet.
-
-## Technology direction
-
-| Layer | Planned technology |
+| Layer | Technology |
 |---|---|
-| Mobile application | React Native + Expo |
-| Backend API | Python + FastAPI |
-| Data access | SQLAlchemy |
-| Structured database | SQLite for development; PostgreSQL for production |
-| Embeddings | Sentence Transformers |
-| Vector database | ChromaDB |
-| RAG orchestration | LangChain |
-| Local LLM | Ollama |
-| Optional cloud LLM | Claude API |
-| Cache | Redis |
+| API | Python, FastAPI |
+| Validation | Pydantic |
+| ORM / database | SQLAlchemy, SQLite (local), PostgreSQL (deployment option) |
+| Authentication | JWT, PyJWT |
+| Password security | Argon2 via pwdlib |
+| Migrations | Alembic |
+| AI generation | Ollama (optional local model) |
+| HTTP client | HTTPX |
+| Tests | Pytest, FastAPI TestClient |
+| Mobile direction | React Native + Expo |
 
 ## Repository structure
 
 ```text
 BrainCache/
-├── backend/app/          # FastAPI application, database, models and schemas
-├── backend/requirements.txt
-├── docs/                 # Requirements, architecture, database and API docs
-├── frontend/             # Mobile application starting point
-├── tests/                # Backend API tests
-└── .github/workflows/    # Continuous integration
+├── backend/
+│   ├── app/                 # API, models, schemas, authentication, AI service
+│   ├── migrations/          # Alembic migrations
+│   ├── requirements.txt
+│   └── README.md
+├── docs/                    # API and database documentation
+├── frontend/                # Mobile application starting point
+├── tests/                   # Backend integration tests
+└── .github/workflows/       # CI
 ```
 
-## Run the backend locally
+## Quick start
 
-Python 3.10 or newer is recommended.
+Follow [backend/README.md](backend/README.md) for Windows PowerShell setup, environment configuration, database migrations, API startup, authentication, and optional Ollama setup.
 
-**Windows PowerShell**
-```powershell
-cd backend
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
+## Current limitations / next milestones
 
-**macOS / Linux**
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) for interactive API documentation. The health endpoint is at [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health).
-
-The SQLite database is created automatically at `backend/braincache.db`.
-
-## Run backend tests
-
-From the repository root, after installing backend dependencies:
-
-```bash
-python -m pytest tests -q
-```
-
-## Development roadmap
-
-1. Finalize requirements, architecture, and data model.
-2. Complete and test core backend APIs.
-3. Develop the mobile application and connect it to the API.
-4. Add authentication, per-user data ownership, and database migrations.\n5. Implement reminder scheduling and notification delivery.
-5. Implement embeddings, semantic retrieval, and RAG-based Q&A.
-6. Add summaries, prioritization, notifications, and integrations.
-7. Complete security, privacy, usability, and deployment testing.
+- Search currently uses keyword relevance; vector embeddings and semantic retrieval are not yet implemented.
+- AI Q&A requires a separately installed and running Ollama model.
+- Reminder records and due-date queries are implemented; scheduled push/email delivery requires a notification worker and mobile push integration.
+- PostgreSQL is supported through SQLAlchemy configuration but needs a production database driver and deployment configuration.
+- Production deployment still requires HTTPS, secret management, rate limiting, backups, monitoring, and a reviewed privacy policy.
 
 ## Development principles
 
-- Build and verify core functionality before introducing AI complexity.
-- Protect personal data and obtain clear consent before using external AI services.
-- Keep setup instructions reproducible and test API behavior as the project evolves.
-
-*BrainCache is an academic project under active development; architecture and features may evolve as implementation progresses.*
+- Keep personal records isolated by authenticated account.
+- Prefer local AI processing for private user data.
+- Validate inputs and test API behavior before adding features.
+- Use migrations for schema changes; do not rely on implicit table creation in production.
