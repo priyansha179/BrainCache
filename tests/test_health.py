@@ -109,3 +109,12 @@ def test_search_dashboard_and_cross_user_access(client):
     assert len(results) == 2
     summary = client.get("/api/dashboard/summary", headers=headers).json()
     assert summary["notes"] == 1 and summary["tasks"]["Pending"] == 1
+
+
+
+def test_ai_retrieval_never_reads_another_users_notes(client):
+    first = register_and_login(client, "owner@example.com")
+    second = register_and_login(client, "visitor@example.com")
+    client.post("/api/notes", headers=first, json={"title": "Private RAG research", "content": "Personal retrieval augmented generation notes"})
+    response = client.post("/api/ai/ask", headers=second, json={"question": "What are my RAG notes?"})
+    assert response.status_code == 404
