@@ -14,6 +14,10 @@ depends_on = None
 
 def upgrade():
     bind = op.get_bind()
+    # Create every missing table on a fresh database. Existing tables are left intact.
+    from app.database import Base
+    from app import models  # noqa: F401
+    Base.metadata.create_all(bind=bind)
     inspector = inspect(bind)
     if "users" not in inspector.get_table_names():
         op.create_table(
@@ -32,7 +36,7 @@ def upgrade():
             continue
         columns = {column["name"] for column in inspect(bind).get_columns(table)}
         if "user_id" not in columns:
-            op.add_column(table, sa.Column("user_id", sa.Integer(), nullable=True))
+            op.add_column(table, sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=True))
             op.create_index(f"ix_{table}_user_id", table, ["user_id"])
             # Existing records remain unassigned and are not exposed to new accounts.
             # Users can manually export/recreate legacy records after reviewing them.
