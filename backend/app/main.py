@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from . import models, schemas
 from .auth import create_access_token, get_current_user, hash_password, verify_password
-from .database import Base, engine, get_db
+from .database import get_db
 
 # create_all supports fresh local databases; use Alembic migrations for existing databases.
 Base.metadata.create_all(bind=engine)
@@ -228,7 +228,7 @@ def search_personal_data(q: str = Query(min_length=1, max_length=200), limit: in
     if not terms: return []
     results = []
     for model, kind, body_field in ((models.Note, "note", "content"), (models.Task, "task", "description")):
-        rows = db.query(model).filter(model.user_id == user.id).filter(or_(*[model.title.ilike(f"%{t}%") for t in terms])).limit(100).all()
+        rows = db.query(model).filter(model.user_id == user.id).filter(or_(*[or_(model.title.ilike(f"%{t}%"), getattr(model, body_field).ilike(f"%{t}%")) for t in terms])).limit(100).all()
         for row in rows:
             body = getattr(row, body_field) or ""
             haystack = f"{row.title} {body}".lower()
