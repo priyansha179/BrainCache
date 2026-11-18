@@ -10,7 +10,7 @@ BrainCache is a personal knowledge and productivity platform designed to help pe
 
 - FastAPI REST API with interactive OpenAPI documentation.
 - Notes: create, list, retrieve, search, partially update, and delete.
-- Tasks: create, list, filter by status, update status, and delete.
+- Tasks: create, list, filter by status, update status, and delete.\n- Reminders: create, list, filter by completion, retrieve, update, and delete.\n- Calendar events: create, list by date range, retrieve, update, and delete, with schedule validation.
 - Request validation for note/task titles and supported task statuses.
 - SQLAlchemy models, SQLite development database, and request-scoped sessions.
 - Automated API tests using an isolated in-memory SQLite database.
@@ -21,7 +21,7 @@ See [Backend API Reference](docs/backend-api.md) for endpoint details.
 ## Planned features
 
 - Personal knowledge capture and organization.
-- Reminders and calendar workflows.
+- Authentication and per-user data ownership.\n- Automated reminder delivery and notification scheduling.
 - Semantic search using embeddings.
 - RAG-based natural-language Q&A grounded in saved information.
 - Contextual summaries, suggestions, notifications, and daily briefings.
@@ -94,7 +94,7 @@ python -m pytest tests -q
 1. Finalize requirements, architecture, and data model.
 2. Complete and test core backend APIs.
 3. Develop the mobile application and connect it to the API.
-4. Add authentication, reminders, and calendar workflows.
+4. Add authentication, per-user data ownership, and database migrations.\n5. Implement reminder scheduling and notification delivery.
 5. Implement embeddings, semantic retrieval, and RAG-based Q&A.
 6. Add summaries, prioritization, notifications, and integrations.
 7. Complete security, privacy, usability, and deployment testing.
