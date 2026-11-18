@@ -1,4 +1,4 @@
-name: Backend tests
+name: Backend tests and migrations
 
 on:
   push:
@@ -26,5 +26,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r backend/requirements.txt
-      - name: Run backend tests
+      - name: Validate database migrations
+        working-directory: backend
+        env:
+          JWT_SECRET_KEY: ci-only-not-a-production-secret
+        run: alembic upgrade head
+      - name: Run backend integration tests
+        env:
+          JWT_SECRET_KEY: ci-only-not-a-production-secret
         run: python -m pytest tests -q
