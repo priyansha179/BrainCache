@@ -2,7 +2,8 @@
 from datetime import datetime
 from typing import Literal
 from fastapi import Depends, FastAPI, HTTPException, Query, status
-from fastapi.middleware.cors import CORSMiddleware\nimport os
+from fastapi.middleware.cors import CORSMiddleware
+import os
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
