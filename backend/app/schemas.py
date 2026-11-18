@@ -156,3 +156,17 @@ class SearchResult(BaseModel):
     title: str
     excerpt: str
     score: int
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=1000)
+
+
+class SourceRead(BaseModel):
+    note_id: int
+    title: str
+    excerpt: str
+
+
+class AskResponse(BaseModel):
+    answer: str
+    sources: list[SourceRead]
