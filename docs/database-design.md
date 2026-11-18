@@ -1,9 +1,8 @@
-# BrainCache — Initial Database Design
+# BrainCache — Database Design
 
 ## Current entities
 
 ### Notes
-
 | Field | Type | Purpose |
 |---|---|---|
 | id | Integer, primary key | Unique note identifier |
@@ -13,7 +12,6 @@
 | updated_at | DateTime | Last update timestamp |
 
 ### Tasks
-
 | Field | Type | Purpose |
 |---|---|---|
 | id | Integer, primary key | Unique task identifier |
@@ -23,19 +21,34 @@
 | due_date | DateTime, nullable | Optional deadline |
 | created_at | DateTime | Creation timestamp |
 
-## Planned entities
+### Reminders
+| Field | Type | Purpose |
+|---|---|---|
+| id | Integer, primary key | Unique reminder identifier |
+| title | String(200) | Reminder title |
+| message | Text | Optional reminder details |
+| remind_at | DateTime, indexed | Scheduled reminder time |
+| is_completed | Boolean | Completion state |
+| created_at | DateTime | Creation timestamp |
 
-The following entities are design candidates and are not implemented yet:
+### Calendar events
+| Field | Type | Purpose |
+|---|---|---|
+| id | Integer, primary key | Unique event identifier |
+| title | String(200) | Event title |
+| description | Text | Optional event details |
+| location | String(300), nullable | Event location |
+| start_at | DateTime, indexed | Event start |
+| end_at | DateTime | Event end |
+| created_at | DateTime | Creation timestamp |
 
+## Planned entities and infrastructure
 - **User:** account identity and authentication details.
-- **Reminder:** reminder time, message, and completion state.
-- **CalendarEvent:** event title, start/end time, and optional description.
 - **Tag:** reusable labels for organizing notes and tasks.
 - **NoteEmbedding:** embedding metadata and relationship to source notes, with vector values managed by the vector database.
 
 ## Design notes
-
-- SQLite is used for the initial local development database.
+- SQLite is used for local development; `DATABASE_URL` can point SQLAlchemy to PostgreSQL.
 - SQLAlchemy provides the ORM layer so the database can be changed later.
 - User ownership and access-control relationships must be designed before enabling multiple accounts.
-- Schema changes should be managed with database migrations before the project reaches production.
+- `Base.metadata.create_all` creates new tables but does not migrate existing tables. Introduce Alembic migrations before production schema changes.
