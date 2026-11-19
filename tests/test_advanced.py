@@ -1,3 +1,5 @@
+import os
+os.environ.setdefault("JWT_SECRET_KEY", "test-only-secret-key-never-use-in-production")
 """Integration tests for advanced AI and notification routes."""
 import pytest
 from fastapi.testclient import TestClient
