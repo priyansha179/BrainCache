@@ -57,6 +57,29 @@ All personal-data, search, dashboard, and AI endpoints require a bearer token. E
 - Dashboard: per-user totals.
 - AI: retrieval-grounded question answering through optional Ollama.
 
+## Semantic search and AI features
+
+BrainCache supports meaning-based note retrieval using Ollama embeddings. Pull both models:
+
+```powershell
+ollama pull llama3.2
+ollama pull nomic-embed-text
+```
+
+Use `POST /api/ai/index` to index or refresh notes, then `POST /api/search/semantic` with `{"query":"..."}`. Semantic search automatically refreshes embeddings when note contents change. Embeddings are stored per note and per account. `POST /api/ai/summarize` accepts a list of your note IDs; `GET /api/ai/recommendations` generates suggestions from your own notes, tasks, and reminders. These AI endpoints require Ollama.
+
+## Push notifications
+
+The mobile app should request notification permission with `expo-notifications`, obtain its Expo push token, and register it with `POST /api/notifications/device-token`. The API provides an in-app inbox at `GET /api/notifications` and allows read-state updates with `PATCH /api/notifications/{id}`.
+
+Run the separate reminder worker from the backend directory:
+
+```powershell
+python -m app.notification_worker
+```
+
+The worker polls due reminders every 30 seconds, creates an in-app notification, and sends a push through Expo Push Service when a device token is registered. Run one worker instance initially and supervise it as a separate process in deployment.
+
 ## Local AI
 
 Install Ollama separately, then run:
