@@ -1,12 +1,12 @@
 # BrainCache Backend
 
-FastAPI backend for personal notes, tasks, reminders, calendar events, search, and optional local AI Q&A.
+FastAPI backend for personal notes, tasks, reminders, calendar events, search, and Gemini-powered AI features.
 
 ## Requirements
 
 - Python 3.10+
 - SQLite (included with Python) or PostgreSQL
-- Ollama is optional and only needed for AI Q&A
+- A Google Gemini API key for AI chat, summaries, recommendations, and semantic embeddings
 
 ## Setup (Windows PowerShell)
 
@@ -19,6 +19,8 @@ py -m venv .venv
 python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
+
+Open `.env` and set `GEMINI_API_KEY` to your own key from [Google AI Studio](https://aistudio.google.com/apikey). Keep the key private: do not paste it into chat, commit it, or upload it to GitHub. The example file contains only a placeholder.
 
 Set a strong JWT secret in the current PowerShell session before starting the API:
 
@@ -53,20 +55,21 @@ All personal-data, search, dashboard, and AI endpoints require a bearer token. E
 - Tasks: create, list/filter, update, delete.
 - Reminders: create, list/filter, retrieve, update, delete.
 - Calendar: create, list by date range, retrieve, update, delete.
-- Search: keyword-ranked personal notes and tasks.
+- Search: keyword-ranked personal notes and tasks, plus Gemini embedding-based semantic search.
 - Dashboard: per-user totals.
-- AI: retrieval-grounded question answering through optional Ollama.
+- AI: retrieval-grounded question answering, note summaries, and productivity recommendations through Gemini.
 
-## Semantic search and AI features
+## Gemini AI and semantic search
 
-BrainCache supports meaning-based note retrieval using Ollama embeddings. Pull both models:
+BrainCache uses the Google Gemini Developer API. Configure `GEMINI_API_KEY` in `backend/.env`. The default generation model is `gemini-2.5-flash`; embeddings use `gemini-embedding-001`. Both can be changed with `GEMINI_MODEL` and `GEMINI_EMBEDDING_MODEL`.
 
-```powershell
-ollama pull llama3.2
-ollama pull nomic-embed-text
-```
+- `POST /api/ai/ask`: answer a question using matching notes belonging to the signed-in user.
+- `POST /api/ai/index`: create or refresh note embeddings.
+- `POST /api/search/semantic`: find notes by meaning rather than exact keywords.
+- `POST /api/ai/summarize`: summarize selected note IDs.
+- `GET /api/ai/recommendations`: generate practical suggestions from your own notes, tasks, and reminders.
 
-Use `POST /api/ai/index` to index or refresh notes, then `POST /api/search/semantic` with `{"query":"..."}`. Semantic search automatically refreshes embeddings when note contents change. Embeddings are stored per note and per account. `POST /api/ai/summarize` accepts a list of your note IDs; `GET /api/ai/recommendations` generates suggestions from your own notes, tasks, and reminders. These AI endpoints require Ollama.
+Embeddings are stored per note and per account. The API refreshes an embedding when the note title or content changes. AI requests send the relevant personal-note context to Google's Gemini API; review Google's data-use and privacy terms before using sensitive personal information. API availability and usage limits depend on your Google AI Studio project and selected model.
 
 ## Push notifications
 
@@ -78,18 +81,7 @@ Run the separate reminder worker from the backend directory:
 python -m app.notification_worker
 ```
 
-The worker polls due reminders every 30 seconds, creates an in-app notification, and sends a push through Expo Push Service when a device token is registered. Run one worker instance initially and supervise it as a separate process in deployment.
-
-## Local AI
-
-Install Ollama separately, then run:
-
-```powershell
-ollama pull llama3.2
-ollama serve
-```
-
-Configure `OLLAMA_BASE_URL` and `OLLAMA_MODEL` if needed. The AI endpoint returns HTTP 503 when the local model service is unavailable. It retrieves the signed-in user's matching notes and supplies them as context; it does not send personal data to a cloud provider.
+The worker polls due reminders every 30 seconds, creates an in-app notification, and sends a push through Expo Push Service when a device token is registered. Run one worker instance initially and supervise it as a separate process in deployment. This worker does not require Gemini.
 
 ## Database notes
 
@@ -106,4 +98,4 @@ python -m pip install -r backend/requirements.txt
 python -m pytest tests -q
 ```
 
-Tests use a temporary in-memory SQLite database and do not modify the development database.
+Tests use a temporary in-memory SQLite database and do not call Gemini; live AI requests require a valid API key.
