@@ -61,7 +61,7 @@ All personal-data, search, dashboard, and AI endpoints require a bearer token. E
 
 ## Gemini AI and semantic search
 
-BrainCache uses the Google Gemini Developer API. Configure `GEMINI_API_KEY` in `backend/.env`. The default generation model is `gemini-2.5-flash`; embeddings use `gemini-embedding-001`. Both can be changed with `GEMINI_MODEL` and `GEMINI_EMBEDDING_MODEL`.
+BrainCache uses the Google Gemini Developer API. Configure `GEMINI_API_KEY` in `backend/.env`. The default generation model is `gemini-3.8-flash`; embeddings use `gemini-embedding-001`. Both can be changed with `GEMINI_MODEL` and `GEMINI_EMBEDDING_MODEL`.
 
 - `POST /api/ai/ask`: answer a question using matching notes belonging to the signed-in user.
 - `POST /api/ai/index`: create or refresh note embeddings.
