@@ -10,7 +10,7 @@ GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-0
 
 
 def text_hash(value: str) -> str:
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{GEMINI_EMBEDDING_MODEL}\\0{value}".encode("utf-8")).hexdigest()
 
 
 def _client():
@@ -25,11 +25,14 @@ async def embed_texts(texts: list[str]) -> list[list[float]]:
         return []
     try:
         client = _client()
-        response = await client.aio.models.embed_content(
-            model=GEMINI_EMBEDDING_MODEL,
-            contents=texts,
-        )
-        vectors = [list(item.values) for item in (response.embeddings or [])]
+        try:
+            response = await client.aio.models.embed_content(
+                model=GEMINI_EMBEDDING_MODEL,
+                contents=texts,
+            )
+            vectors = [list(item.values) for item in (response.embeddings or [])]
+        finally:
+            await client.aio.aclose()
         if len(vectors) != len(texts) or any(not vector for vector in vectors):
             raise ValueError("Gemini returned an unexpected embedding response.")
         return vectors
@@ -51,12 +54,15 @@ def cosine_similarity(left: list[float], right: list[float]) -> float:
 async def generate_text(prompt: str, *, system: str) -> str:
     try:
         client = _client()
-        response = await client.aio.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=prompt,
-            config={"system_instruction": system},
-        )
-        result = (response.text or "").strip()
+        try:
+            response = await client.aio.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=prompt,
+                config={"system_instruction": system},
+            )
+            result = (response.text or "").strip()
+        finally:
+            await client.aio.aclose()
         if not result:
             raise ValueError("Gemini returned an empty response.")
         return result
