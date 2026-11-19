@@ -31,6 +31,8 @@ jobs:
         env:
           JWT_SECRET_KEY: ci-only-not-a-production-secret
         run: alembic upgrade head
+      - name: Check Python compilation
+        run: python -m compileall -q backend/app
       - name: Run backend integration tests
         env:
           JWT_SECRET_KEY: ci-only-not-a-production-secret
