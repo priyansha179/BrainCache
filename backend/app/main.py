@@ -11,6 +11,7 @@ from . import models, schemas
 from .auth import create_access_token, get_current_user, hash_password, verify_password
 from .ai import generate_grounded_answer
 from .database import get_db
+from .advanced import router as advanced_router
 
 app = FastAPI(
     title="BrainCache API",
@@ -275,3 +276,7 @@ async def ask_braincache(payload: schemas.AskRequest, db: Session = Depends(get_
         "answer": answer,
         "sources": [{"note_id": item.id, "title": item.title, "excerpt": item.content[:280]} for item in matches],
     }
+
+
+# Advanced AI, semantic search, and notification endpoints.
+app.include_router(advanced_router)
