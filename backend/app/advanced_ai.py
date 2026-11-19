@@ -1,32 +1,42 @@
-"""Ollama embeddings and grounded AI helpers for BrainCache."""
+"""Google Gemini embeddings and grounded AI helpers for BrainCache."""
 import hashlib
 import math
 import os
-import httpx
 
-BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
-CHAT_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
-EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
+from google import genai
+
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
 
 
 def text_hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def _client():
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("Gemini is not configured. Add GEMINI_API_KEY to backend/.env.")
+    return genai.Client(api_key=api_key)
+
+
 async def embed_texts(texts: list[str]) -> list[list[float]]:
     if not texts:
         return []
     try:
-        async with httpx.AsyncClient(timeout=90.0) as client:
-            response = await client.post(f"{BASE_URL}/api/embed", json={"model": EMBED_MODEL, "input": texts})
-            response.raise_for_status()
-            data = response.json()
-        vectors = data.get("embeddings")
-        if not isinstance(vectors, list) or len(vectors) != len(texts):
-            raise ValueError("Unexpected embedding response.")
+        client = _client()
+        response = await client.aio.models.embed_content(
+            model=GEMINI_EMBEDDING_MODEL,
+            contents=texts,
+        )
+        vectors = [list(item.values) for item in (response.embeddings or [])]
+        if len(vectors) != len(texts) or any(not vector for vector in vectors):
+            raise ValueError("Gemini returned an unexpected embedding response.")
         return vectors
-    except (httpx.HTTPError, ValueError, TypeError) as exc:
-        raise RuntimeError(f"Embedding service unavailable. Start Ollama and pull {EMBED_MODEL}.") from exc
+    except RuntimeError:
+        raise
+    except Exception as exc:
+        raise RuntimeError("Gemini embeddings are unavailable. Check GEMINI_API_KEY, model access, and API quota.") from exc
 
 
 def cosine_similarity(left: list[float], right: list[float]) -> float:
@@ -40,22 +50,20 @@ def cosine_similarity(left: list[float], right: list[float]) -> float:
 
 async def generate_text(prompt: str, *, system: str) -> str:
     try:
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(
-                f"{BASE_URL}/api/chat",
-                json={"model": CHAT_MODEL, "stream": False, "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": prompt},
-                ]},
-            )
-            response.raise_for_status()
-            data = response.json()
-        result = data.get("message", {}).get("content", "").strip()
+        client = _client()
+        response = await client.aio.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config={"system_instruction": system},
+        )
+        result = (response.text or "").strip()
         if not result:
-            raise ValueError("Empty model response.")
+            raise ValueError("Gemini returned an empty response.")
         return result
-    except (httpx.HTTPError, ValueError, TypeError) as exc:
-        raise RuntimeError(f"AI service unavailable. Start Ollama and pull {CHAT_MODEL}.") from exc
+    except RuntimeError:
+        raise
+    except Exception as exc:
+        raise RuntimeError("Gemini generation is unavailable. Check GEMINI_API_KEY, model access, and API quota.") from exc
 
 
 async def summarize_notes(notes: list[dict]) -> str:
