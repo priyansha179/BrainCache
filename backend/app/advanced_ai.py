@@ -5,12 +5,12 @@ import os
 
 from google import genai
 
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
 
 
 def text_hash(value: str) -> str:
-    return hashlib.sha256(f"{GEMINI_EMBEDDING_MODEL}\\0{value}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{GEMINI_EMBEDDING_MODEL}:{value}".encode("utf-8")).hexdigest()
 
 
 def _client():
