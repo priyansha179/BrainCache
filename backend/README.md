@@ -15,27 +15,35 @@ From the repository root:
 ```powershell
 cd backend
 py -m venv .venv
-.\.venv\Scripts\Activate.ps1
+.\\.venv\\Scripts\\Activate.ps1
 python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Open `.env` and set `GEMINI_API_KEY` to your own key from [Google AI Studio](https://aistudio.google.com/apikey). Keep the key private: do not paste it into chat, commit it, or upload it to GitHub. The example file contains only a placeholder.
+Open `.env` and set:
+- `GEMINI_API_KEY` to your own key from [Google AI Studio](https://aistudio.google.com/apikey).
+- `JWT_SECRET_KEY` to a long random value. Generate one with `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
 
-Set a strong JWT secret in the current PowerShell session before starting the API:
+Keep both values private. Do not paste them into chat, commit them, or upload them to GitHub. The example file contains placeholders only.
 
-```powershell
-$env:JWT_SECRET_KEY = python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
+### Initialize the database and start the API
 
-Keep the same secret between restarts. For deployment, configure it through the hosting provider's secret/environment settings; never commit a real secret.
-
-Run migrations and start the API:
+**Recommended (one command):**
 
 ```powershell
-alembic upgrade head
-uvicorn app.main:app --reload
+.\\start.ps1
 ```
+
+The script runs the Alembic database migrations first and starts the development API only if the migrations succeed. Run it from the backend directory with the virtual environment activated.
+
+**Manual alternative:**
+
+```powershell
+python -m alembic upgrade head
+python -m uvicorn app.main:app --reload
+```
+
+Always apply migrations before starting the API against a new database. If you see `sqlite3.OperationalError: no such table: users`, stop Uvicorn, make sure your terminal is in the `backend` directory, and run `python -m alembic upgrade head`. Do not delete the database.
 
 Open http://127.0.0.1:8000/docs.
 
@@ -61,7 +69,7 @@ All personal-data, search, dashboard, and AI endpoints require a bearer token. E
 
 ## Gemini AI and semantic search
 
-BrainCache uses the Google Gemini Developer API. Configure `GEMINI_API_KEY` in `backend/.env`. The default generation model is `gemini-3.8-flash`; embeddings use `gemini-embedding-001`. Both can be changed with `GEMINI_MODEL` and `GEMINI_EMBEDDING_MODEL`.
+BrainCache uses the Google Gemini Developer API. Configure `GEMINI_API_KEY` in `backend/.env`. The default generation model is `gemini-flash-lite-latest`; embeddings use `gemini-embedding-001`. Both can be changed with `GEMINI_MODEL` and `GEMINI_EMBEDDING_MODEL`.
 
 - `POST /api/ai/ask`: answer a question using matching notes belonging to the signed-in user.
 - `POST /api/ai/index`: create or refresh note embeddings.
@@ -85,7 +93,7 @@ The worker polls due reminders every 30 seconds, creates an in-app notification,
 
 ## Database notes
 
-Alembic migration `0001_user_ownership` adds the account table and nullable ownership fields to existing notes/tasks/reminders/events. Existing legacy rows remain unassigned and are not shown to newly registered users. Review and export any legacy data before manually reassigning it.
+Alembic migrations create the database tables and add account ownership to notes/tasks/reminders/events. Existing legacy rows remain unassigned and are not shown to newly registered users. Review and export any legacy data before manually reassigning it.
 
 SQLite is the default local database. Configure `DATABASE_URL` for PostgreSQL and install a matching driver before deployment. Use a production-grade secret manager and HTTPS in production.
 
