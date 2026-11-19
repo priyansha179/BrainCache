@@ -1,4 +1,4 @@
-# BrainCache — AI-Powered Personal Knowledge OS
+# BrainCache 
 
 **Remember Less. Think More.**
 
