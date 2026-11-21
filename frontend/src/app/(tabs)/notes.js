@@ -1,31 +1,87 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Screen } from '../../components/Screen';
-import { EmptyState, SectionHeading, Surface } from '../../components/UI';
+import { SectionHeading, Surface } from '../../components/UI';
+import { useAuth } from '../../context/AuthContext';
+import { notesApi } from '../../services/api';
 import { colors, radius } from '../../constants/theme';
 
 export default function NotesScreen() {
-  return (
-    <Screen>
-      <Text style={styles.eyebrow}>YOUR KNOWLEDGE LIBRARY</Text>
-      <Text style={styles.title}>Notes</Text>
-      <Text style={styles.subtitle}>Keep useful thoughts, discoveries, and ideas close.</Text>
-      <View style={styles.search}><Text style={styles.searchText}>⌕  Search your notes...</Text></View>
-      <SectionHeading title="All notes" action="Newest first" />
-      <Surface style={styles.emptyCard}>
-        <View style={styles.icon}><Text style={styles.iconText}>▤</Text></View>
-        <EmptyState title="Nothing saved yet" description="Your notes will appear here. Capture an idea whenever inspiration strikes." />
-      </Surface>
-    </Screen>
-  );
+  const { token } = useAuth();
+  const [notes, setNotes] = useState([]);
+  const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [error, setError] = useState('');
+  const loadNotes = useCallback(async () => {
+    setLoading(true); setError('');
+    try { setNotes(await notesApi.list(token, query.trim())); }
+    catch (e) { setError(e.message); }
+    finally { setLoading(false); }
+  }, [token, query]);
+  useEffect(() => { loadNotes(); }, [loadNotes]);
+  function openEditor(note = null) {
+    setEditing(note); setTitle(note?.title || ''); setContent(note?.content || ''); setModalVisible(true);
+  }
+  async function saveNote() {
+    if (!title.trim()) return Alert.alert('Title required', 'Give your note a short title.');
+    setSaving(true);
+    try {
+      if (editing) await notesApi.update(token, editing.id, { title: title.trim(), content });
+      else await notesApi.create(token, { title: title.trim(), content });
+      setModalVisible(false); await loadNotes();
+    } catch (e) { Alert.alert('Could not save note', e.message); }
+    finally { setSaving(false); }
+  }
+  function confirmDelete(note) {
+    Alert.alert('Delete note?', `“${note.title}” will be permanently deleted.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try { await notesApi.remove(token, note.id); await loadNotes(); }
+        catch (e) { Alert.alert('Could not delete note', e.message); }
+      }},
+    ]);
+  }
+  return <Screen>
+    <Text style={styles.eyebrow}>YOUR KNOWLEDGE LIBRARY</Text><Text style={styles.title}>Notes</Text>
+    <Text style={styles.subtitle}>Keep useful thoughts, discoveries, and ideas close.</Text>
+    <TextInput value={query} onChangeText={setQuery} placeholder="⌕  Search your notes..." placeholderTextColor={colors.muted} style={styles.search} />
+    <Pressable onPress={() => openEditor()} style={styles.addButton}><Text style={styles.addText}>＋  Create a note</Text></Pressable>
+    <SectionHeading title="All notes" action={`${notes.length} saved`} />
+    {loading ? <ActivityIndicator color={colors.primary} style={{ marginTop: 30 }} /> : error ? <Surface><Text style={styles.error}>{error}</Text><Pressable onPress={loadNotes}><Text style={styles.link}>Try again</Text></Pressable></Surface> : notes.length === 0 ? (
+      <Surface><View style={styles.emptyIcon}><Text style={styles.emptyGlyph}>▤</Text></View><Text style={styles.emptyTitle}>Nothing saved yet</Text><Text style={styles.emptyBody}>Capture an idea whenever inspiration strikes.</Text></Surface>
+    ) : notes.map((note) => <Pressable key={note.id} onPress={() => openEditor(note)} onLongPress={() => confirmDelete(note)} style={styles.noteCard}>
+      <View style={styles.noteTop}><Text style={styles.noteTitle} numberOfLines={1}>{note.title}</Text><Pressable onPress={() => confirmDelete(note)} hitSlop={10}><Text style={styles.delete}>Delete</Text></Pressable></View>
+      <Text style={styles.noteContent} numberOfLines={3}>{note.content || 'No additional details.'}</Text>
+      <Text style={styles.date}>{new Date(note.updated_at).toLocaleDateString()}</Text>
+    </Pressable>)}
+    <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
+      <View style={styles.overlay}><View style={styles.modal}>
+        <View style={styles.modalHeader}><Text style={styles.modalTitle}>{editing ? 'Edit note' : 'New note'}</Text><Pressable onPress={() => setModalVisible(false)}><Text style={styles.close}>✕</Text></Pressable></View>
+        <TextInput value={title} onChangeText={setTitle} placeholder="Note title" placeholderTextColor={colors.muted} style={styles.field} maxLength={200} />
+        <TextInput value={content} onChangeText={setContent} placeholder="Write down your thoughts..." placeholderTextColor={colors.muted} style={[styles.field, styles.multiline]} multiline textAlignVertical="top" />
+        <Pressable style={styles.saveButton} onPress={saveNote} disabled={saving}>{saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveText}>Save note</Text>}</Pressable>
+      </View></View>
+    </Modal>
+  </Screen>;
 }
-
 const styles = StyleSheet.create({
-  eyebrow: { color: colors.secondary, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 },
-  title: { color: colors.ink, fontSize: 29, fontWeight: '800', letterSpacing: -0.8, marginTop: 7 },
-  subtitle: { color: colors.secondary, fontSize: 13, lineHeight: 20, marginTop: 6, marginBottom: 22 },
-  search: { height: 48, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, justifyContent: 'center', paddingHorizontal: 14, marginBottom: 26 },
-  searchText: { color: colors.muted, fontSize: 12 },
-  emptyCard: { alignItems: 'center', paddingVertical: 24 },
-  icon: { width: 54, height: 54, borderRadius: 18, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
-  iconText: { color: colors.primary, fontSize: 24 },
+  eyebrow: { color: colors.secondary, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 }, title: { color: colors.ink, fontSize: 29, fontWeight: '800', marginTop: 7 },
+  subtitle: { color: colors.secondary, fontSize: 13, lineHeight: 20, marginTop: 6, marginBottom: 18 },
+  search: { height: 47, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 14, color: colors.ink, marginBottom: 10 },
+  addButton: { height: 46, backgroundColor: colors.primary, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginBottom: 25 }, addText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
+  noteCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: 17, marginBottom: 11 },
+  noteTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, noteTitle: { color: colors.ink, fontSize: 15, fontWeight: '800', flex: 1, marginRight: 12 },
+  delete: { color: colors.danger, fontWeight: '700', fontSize: 11 }, noteContent: { color: colors.secondary, fontSize: 12, lineHeight: 18, marginTop: 8 }, date: { color: colors.muted, fontSize: 10, marginTop: 12 },
+  emptyIcon: { alignSelf: 'center', width: 48, height: 48, borderRadius: 16, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  emptyGlyph: { color: colors.primary, fontSize: 22 }, emptyTitle: { color: colors.ink, textAlign: 'center', fontWeight: '800', marginTop: 14 }, emptyBody: { color: colors.secondary, fontSize: 12, textAlign: 'center', marginTop: 5 },
+  error: { color: colors.danger, fontSize: 12, marginBottom: 10 }, link: { color: colors.primary, fontWeight: '700' },
+  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(20,18,32,0.35)' }, modal: { backgroundColor: colors.background, borderTopLeftRadius: 25, borderTopRightRadius: 25, padding: 22, paddingBottom: 34 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }, modalTitle: { color: colors.ink, fontSize: 20, fontWeight: '800' },
+  close: { color: colors.secondary, fontSize: 18, padding: 4 }, field: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: 14, color: colors.ink, marginBottom: 12, fontSize: 13 },
+  multiline: { minHeight: 145 }, saveButton: { height: 50, backgroundColor: colors.primary, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginTop: 5 }, saveText: { color: '#FFF', fontWeight: '800' },
 });
