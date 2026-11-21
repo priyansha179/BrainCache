@@ -9,9 +9,6 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {
-      "backgroundColor": "#F7F6FA"
-    },
     "plugins": [
       "expo-router"
     ]
