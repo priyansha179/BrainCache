@@ -5,9 +5,9 @@ import { EmptyState, Pill, SectionHeading, Surface } from '../../components/UI';
 import { colors, radius, spacing } from '../../constants/theme';
 
 const stats = [
-  { label: 'Notes', value: '12', detail: 'Ideas captured', tint: colors.primarySoft, accent: colors.primaryDark },
-  { label: 'Tasks', value: '05', detail: 'In progress', tint: colors.blueSoft, accent: colors.blue },
-  { label: 'Reminders', value: '03', detail: 'Coming up', tint: colors.warningSoft, accent: colors.warning },
+  { label: 'Notes', value: '—', detail: 'Ready to connect', tint: colors.primarySoft, accent: colors.primaryDark },
+  { label: 'Tasks', value: '—', detail: 'Ready to connect', tint: colors.blueSoft, accent: colors.blue },
+  { label: 'Reminders', value: '—', detail: 'Ready to connect', tint: colors.warningSoft, accent: colors.warning },
 ];
 
 export default function HomeScreen() {
