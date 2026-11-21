@@ -2,16 +2,16 @@
 
 React Native + Expo mobile application for BrainCache.
 
-## Current milestone
+## Implemented
 
-The initial frontend foundation includes:
-
-- Expo Router file-based navigation with five primary tabs.
-- A shared visual theme and reusable UI primitives.
-- A home dashboard and initial Notes, Tasks, Calendar, and AI screens.
-- A small API client for the FastAPI backend.
-
-The screens currently use placeholder/empty-state content. Dashboard totals are not connected to account data yet, and create/edit/delete flows, authentication, and AI requests are not implemented in this milestone.
+- Expo Router navigation and authenticated route protection.
+- Email/password registration and login using the FastAPI auth endpoints.
+- JWT access token persistence with Expo SecureStore.
+- Session restoration through `GET /api/auth/me`.
+- Notes create, list, search, edit, and delete flows.
+- Tasks create, list, edit, delete, and status updates.
+- Live dashboard totals and recent notes/tasks.
+- Shared API request helper with bearer authentication and readable errors.
 
 ## Run locally
 
@@ -22,25 +22,21 @@ npm install
 npx expo start
 ```
 
-Use Expo Go or an appropriate development build to open the app.
+## Backend URL
 
-## Backend connection
-
-Set `EXPO_PUBLIC_API_URL` in a local frontend `.env` file to the backend's reachable base URL, for example:
+Create a local `.env` file in this frontend directory:
 
 ```env
 EXPO_PUBLIC_API_URL=http://127.0.0.1:8000
 ```
 
-For a physical phone, use the computer's LAN IP address instead of `127.0.0.1`. For an Android emulator, use the host address appropriate to that emulator. Do not put Gemini API keys, JWT signing secrets, or other server secrets in frontend environment variables.
+Use the computer's LAN IP address for a physical phone, not `127.0.0.1`. For an Android emulator, use `http://10.0.2.2:8000`. Keep Gemini keys and JWT signing secrets on the backend only.
 
-The API helper is in `src/services/api.js`. It accepts a bearer token from the caller; secure token storage and the authentication flow are planned for the next milestone.
+The backend must have a configured `JWT_SECRET_KEY` before it can issue tokens. Registration requires a valid email and a password of at least 8 characters.
 
-## Next frontend milestones
+## Current limitations / next work
 
-1. Secure token storage and registration/login flows.
-2. Connect notes, tasks, reminders, calendar, and dashboard to the authenticated API.
-3. Implement create/edit/delete forms and loading/error states.
-4. Connect the AI chat to the grounded Gemini-backed API.
-5. Register Expo push tokens and implement notification screens.
-6. Add automated UI tests and accessibility review.
+- The calendar and AI tabs are still initial UI screens and are not connected to their APIs.
+- Reminder creation and notification permission/registration are not implemented here.
+- The API URL must be configured for the device/network where the backend runs.
+- Run the Expo dependency checks and test the authentication/data flows on a device before treating this milestone as verified.
