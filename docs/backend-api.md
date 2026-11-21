@@ -75,7 +75,7 @@ List parameters: `start_from`, `end_before`, `limit`, and `offset`. Event end ti
 |---|---|---|
 | GET | `/api/search?q=...` | Keyword search across the current user's notes and tasks |
 | GET | `/api/dashboard/summary` | Counts for the current user's records |
-| POST | `/api/ai/ask` | Answer a question using matching private notes and Ollama |
+| POST | `/api/ai/ask` | Answer a question using matching private notes and Google Gemini |\n| POST | `/api/ai/index` | Index or refresh the signed-in user’s note embeddings |\n| POST | `/api/search/semantic` | Search personal notes by meaning using Gemini embeddings |\n| POST | `/api/ai/summarize` | Summarize selected personal notes |\n| GET | `/api/ai/recommendations` | Generate productivity suggestions from personal records |
 
 AI request example:
 
@@ -83,7 +83,7 @@ AI request example:
 {"question": "What did I save about RAG?"}
 ```
 
-The response includes an answer and the notes used as sources. If Ollama is unavailable, the endpoint returns HTTP 503. If no matching notes are found, it returns HTTP 404. The current retrieval method is keyword matching, not vector semantic search.
+The response includes an answer and the notes used as sources. AI generation and embedding endpoints require `GEMINI_API_KEY` configured in `backend/.env`; provider or quota failures return HTTP 503. If no matching notes are found, the Q&A endpoint returns HTTP 404. Semantic search stores embeddings per user and refreshes them when note content or the configured embedding model changes.
 
 ## Error behavior
 
@@ -91,6 +91,6 @@ The response includes an answer and the notes used as sources. If Ollama is unav
 - 404: record not found or does not belong to the current user.
 - 409: duplicate account email.
 - 422: invalid request data or query parameters.
-- 503: local AI model service unavailable.
+- 503: Gemini API key, model access, provider availability, or quota problem.
 
 List endpoints use bounded pagination. Personal record queries are scoped to the authenticated account.
