@@ -71,3 +71,4 @@ Follow [backend/README.md](backend/README.md) for Windows PowerShell setup, Gemi
 - Use explicit provider configuration and keep API keys out of source control.
 - Validate inputs and test API behavior before adding features.
 - Use migrations for schema changes; do not rely on implicit table creation in production.
+
