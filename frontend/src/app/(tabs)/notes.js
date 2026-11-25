@@ -47,8 +47,17 @@ export default function NotesScreen() {
     ]);
   }
   return <Screen>
-    <Text style={styles.eyebrow}>YOUR KNOWLEDGE LIBRARY</Text><Text style={styles.title}>Notes</Text>
-    <Text style={styles.subtitle}>Keep useful thoughts, discoveries, and ideas close.</Text>
+    <View style={styles.pageHeader}>
+      <View style={styles.pageHeaderText}>
+        <Text style={styles.eyebrow}>YOUR KNOWLEDGE LIBRARY</Text>
+        <Text style={styles.title}>Notes</Text>
+        <Text style={styles.subtitle}>Keep useful thoughts, discoveries, and ideas close.</Text>
+      </View>
+      <View style={styles.countBadge}>
+        <Text style={styles.countNumber}>{notes.length}</Text>
+        <Text style={styles.countLabel}>SAVED</Text>
+      </View>
+    </View>
     <TextInput value={query} onChangeText={setQuery} placeholder="⌕  Search your notes..." placeholderTextColor={colors.muted} style={styles.search} />
     <Pressable onPress={() => openEditor()} style={styles.addButton}><Text style={styles.addText}>＋  Create a note</Text></Pressable>
     <SectionHeading title="All notes" action={`${notes.length} saved`} />
@@ -70,11 +79,16 @@ export default function NotesScreen() {
   </Screen>;
 }
 const styles = StyleSheet.create({
-  eyebrow: { color: colors.secondary, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 }, title: { color: colors.ink, fontSize: 29, fontWeight: '800', marginTop: 7 },
-  subtitle: { color: colors.secondary, fontSize: 13, lineHeight: 20, marginTop: 6, marginBottom: 18 },
-  search: { height: 47, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 14, color: colors.ink, marginBottom: 10 },
-  addButton: { height: 46, backgroundColor: colors.primary, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginBottom: 25 }, addText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
-  noteCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: 17, marginBottom: 11 },
+  pageHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  pageHeaderText: { flex: 1, paddingRight: 12 },
+  countBadge: { minWidth: 62, height: 62, borderRadius: 19, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  countNumber: { color: colors.primaryDark, fontSize: 20, fontWeight: '900' },
+  countLabel: { color: colors.primaryDark, fontSize: 8, fontWeight: '900', letterSpacing: 1, marginTop: 2 },
+  eyebrow: { color: colors.secondary, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 }, title: { color: colors.ink, fontSize: 29, fontWeight: '900', marginTop: 7, letterSpacing: -0.8 },
+  subtitle: { color: colors.secondary, fontSize: 12, lineHeight: 19, marginTop: 6, marginBottom: 13 },
+  search: { height: 50, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 16, color: colors.ink, marginBottom: 11 },
+  addButton: { height: 49, backgroundColor: colors.primary, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center', marginBottom: 25, shadowColor: colors.primaryDark, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.16, shadowRadius: 10, elevation: 3 }, addText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
+  noteCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderLeftWidth: 3, borderLeftColor: colors.primarySoft, borderRadius: radius.lg, padding: 17, marginBottom: 11, shadowColor: '#29213F', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.035, shadowRadius: 9, elevation: 1 },
   noteTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, noteTitle: { color: colors.ink, fontSize: 15, fontWeight: '800', flex: 1, marginRight: 12 },
   delete: { color: colors.danger, fontWeight: '700', fontSize: 11 }, noteContent: { color: colors.secondary, fontSize: 12, lineHeight: 18, marginTop: 8 }, date: { color: colors.muted, fontSize: 10, marginTop: 12 },
   emptyIcon: { alignSelf: 'center', width: 48, height: 48, borderRadius: 16, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
