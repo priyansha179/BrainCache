@@ -48,8 +48,17 @@ export default function TasksScreen() {
     ]);
   }
   return <Screen>
-    <Text style={styles.eyebrow}>MAKE IT HAPPEN</Text><Text style={styles.title}>Tasks</Text>
-    <Text style={styles.subtitle}>Turn intentions into small, achievable steps.</Text>
+    <View style={styles.pageHeader}>
+      <View style={styles.pageHeaderText}>
+        <Text style={styles.eyebrow}>MAKE IT HAPPEN</Text>
+        <Text style={styles.title}>Tasks</Text>
+        <Text style={styles.subtitle}>Turn intentions into small, achievable steps.</Text>
+      </View>
+      <View style={styles.countBadge}>
+        <Text style={styles.countNumber}>{counts.Pending}</Text>
+        <Text style={styles.countLabel}>TO DO</Text>
+      </View>
+    </View>
     <View style={styles.summary}>{statuses.map((s) => <View key={s} style={styles.summaryItem}><Text style={styles.number}>{counts[s]}</Text><Text style={styles.caption}>{s === 'Pending' ? 'To do' : s}</Text></View>)}</View>
     <Pressable onPress={() => openEditor()} style={styles.addButton}><Text style={styles.addText}>＋  Add a task</Text></Pressable>
     <View style={styles.filters}>{['All', ...statuses].map((item) => <Pressable key={item} onPress={() => setFilter(item)} style={[styles.filter, filter === item && styles.filterActive]}><Text style={[styles.filterText, filter === item && styles.filterTextActive]}>{item}</Text></Pressable>)}</View>
@@ -69,14 +78,19 @@ export default function TasksScreen() {
   </Screen>;
 }
 const styles = StyleSheet.create({
-  eyebrow: { color: colors.secondary, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 }, title: { color: colors.ink, fontSize: 29, fontWeight: '800', marginTop: 7 },
-  subtitle: { color: colors.secondary, fontSize: 13, lineHeight: 20, marginTop: 6, marginBottom: 18 },
-  summary: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingVertical: 16, marginBottom: 15 },
+  pageHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  pageHeaderText: { flex: 1, paddingRight: 12 },
+  countBadge: { minWidth: 62, height: 62, borderRadius: 19, backgroundColor: colors.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  countNumber: { color: colors.blue, fontSize: 20, fontWeight: '900' },
+  countLabel: { color: colors.blue, fontSize: 8, fontWeight: '900', letterSpacing: 1, marginTop: 2 },
+  eyebrow: { color: colors.secondary, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 }, title: { color: colors.ink, fontSize: 29, fontWeight: '900', marginTop: 7, letterSpacing: -0.8 },
+  subtitle: { color: colors.secondary, fontSize: 12, lineHeight: 19, marginTop: 6, marginBottom: 13 },
+  summary: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingVertical: 17, marginBottom: 15, shadowColor: '#29213F', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.035, shadowRadius: 9, elevation: 1 },
   summaryItem: { alignItems: 'center', flex: 1 }, number: { color: colors.ink, fontSize: 21, fontWeight: '800' }, caption: { color: colors.secondary, fontSize: 9, marginTop: 4 },
-  addButton: { height: 46, backgroundColor: colors.primary, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginBottom: 17 }, addText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
+  addButton: { height: 49, backgroundColor: colors.primary, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center', marginBottom: 17, shadowColor: colors.primaryDark, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.16, shadowRadius: 10, elevation: 3 }, addText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 23 }, filter: { paddingHorizontal: 11, paddingVertical: 8, borderRadius: radius.pill, backgroundColor: colors.surfaceMuted },
   filterActive: { backgroundColor: colors.primarySoft }, filterText: { color: colors.secondary, fontSize: 10, fontWeight: '700' }, filterTextActive: { color: colors.primaryDark },
-  taskCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: 15, marginBottom: 10 },
+  taskCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: 16, marginBottom: 11, shadowColor: '#29213F', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.035, shadowRadius: 9, elevation: 1 },
   taskMain: { paddingBottom: 10 }, taskTitle: { color: colors.ink, fontSize: 14, fontWeight: '800' }, taskDescription: { color: colors.secondary, fontSize: 11, lineHeight: 17, marginTop: 5 }, due: { color: colors.muted, fontSize: 10, marginTop: 7 },
   taskActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 10 },
   status: { backgroundColor: colors.warningSoft, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 6 }, statusText: { color: colors.warning, fontSize: 9, fontWeight: '800' },
