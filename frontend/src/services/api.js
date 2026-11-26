@@ -11,7 +11,7 @@ function getExpoDevelopmentHost() {
   if (!hostUri) return null;
 
   const host = hostUri
-    .replace(/^https?:\\/\\//, '')
+    .replace(/^https?:\/\//, '')
     .split('/')[0]
     .split(':')[0];
 
@@ -25,7 +25,7 @@ const API_BASE_URL = (
   developmentHost
     ? `http://${developmentHost}:8000`
     : configuredApiUrl || 'http://127.0.0.1:8000'
-).replace(/\\/$/, '');
+).replace(/\/$/, '');
 
 export class ApiError extends Error {
   constructor(message, status = 0, details = null) {
