@@ -14,7 +14,7 @@ import {
 
 import { Screen } from '../../components/Screen';
 import { useAuth } from '../../context/AuthContext';
-import { apiRequest } from '../../services/api';
+import { aiApi } from '../../services/api';
 import { colors, radius, spacing } from '../../constants/theme';
 
 const suggestions = [
@@ -69,13 +69,7 @@ export default function AIScreen() {
     setLoading(true);
 
     try {
-      const response = await apiRequest('/api/ai/ask', {
-        token,
-        method: 'POST',
-        body: {
-          question: cleanQuestion,
-        },
-      });
+      const response = await aiApi.ask(token, cleanQuestion);
 
       setMessages((previous) => [
         ...previous,
